@@ -1,9 +1,10 @@
 package com.elliot.footballmanager.match.engine;
 
-import com.elliot.footballmanager.entity.dao.MatchEngineDao;
-import com.elliot.footballmanager.entity.dao.impl.MatchEngineDaoImpl;
+import com.elliot.footballmanager.ColorUtils;
 import com.elliot.footballmanager.entity.Fixture;
 import com.elliot.footballmanager.entity.FootballTeam;
+import com.elliot.footballmanager.entity.Player;
+import com.elliot.footballmanager.entity.Standing;
 import com.elliot.footballmanager.footballteam.matchsetup.FootballTeamMatchSetup;
 import com.elliot.footballmanager.match.FootballTeamMatchStats;
 import com.elliot.footballmanager.match.MatchResult;
@@ -12,13 +13,11 @@ import com.elliot.footballmanager.match.model.*;
 import com.elliot.footballmanager.match.model.pitch.FootballPitch;
 import com.elliot.footballmanager.match.model.pitch.FootballPitchBuilder;
 import com.elliot.footballmanager.match.model.pitch.FootballPitchPlayerPlacer;
-import com.elliot.footballmanager.entity.Player;
 import com.elliot.footballmanager.standings.StandingBuilder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The MatchEngine is where a simulation of a football match takes place. Given two FootballTeams a
@@ -35,10 +34,11 @@ public class MatchEngine {
   private static FootballTeam homeTeam;
   private static FootballTeam awayTeam;
 
+  //TODO - add player tiredness during game and make it affect performance
   public static FootballTeamMatchSetup homeTeamMatchSetup;
   public static FootballTeamMatchSetup awayTeamMatchSetup;
 
-  private static Map<String, FootballTeamMatchStats> footballTeamToMatchStats;
+  public static Map<String, FootballTeamMatchStats> footballTeamToMatchStats;
 
   public static FootballPitch[][] footballPitch;
   private static Football football;
@@ -50,7 +50,8 @@ public class MatchEngine {
 
   }
 
-  public static MatchResult beginFootballMatchSimulator(Fixture fixture) {
+  //TODO - add stat tracking for players during a seasons (so link player ID in table to goals scored etc)
+  public static MatchResult beginFootballMatchSimulator(Fixture fixture, HashMap<Integer, Standing> standingList) {
     beginPreMatchSetup(fixture);
 
     buildFootballPitch();
@@ -58,10 +59,39 @@ public class MatchEngine {
 
     giveATeamTheFootball();
 
+    if(isLoggingGameEvents())
+      System.out.print("\n" + ColorUtils.YELLOW_BOLD_BRIGHT + "KICKOFF" + ColorUtils.RESET + "\n\n");
     simulateOneHalfOfFootball();
+    if(isLoggingGameEvents()){
+      //TODO - Add half time menu so player can modify team setup during halftime
+      System.out.print("\r             ");
+      System.out.print("\n" + ColorUtils.YELLOW_BOLD_BRIGHT + "HALF TIME" + ColorUtils.RESET
+              + " (" + homeTeam.getTeamName()
+              + " [" + footballTeamToMatchStats.get(homeTeam.getTeamName()).getGoals() + "]"
+              + " - [" + footballTeamToMatchStats.get(awayTeam.getTeamName()).getGoals() + "]"
+              + " " + awayTeam.getTeamName() + ")"
+              + "\n\n");
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    setCurrentTimeInGame(45.00D);
     simulateOneHalfOfFootball();
-
-    return beginPostMatchSetup();
+    if(isLoggingGameEvents()){
+      System.out.print("\r             ");
+      System.out.print("\n" + ColorUtils.YELLOW_BOLD_BRIGHT + "FULL TIME" + ColorUtils.RESET
+              + " (" + homeTeam.getTeamName()
+              + " [" + footballTeamToMatchStats.get(homeTeam.getTeamName()).getGoals() + "]"
+              + " - [" + footballTeamToMatchStats.get(awayTeam.getTeamName()).getGoals() + "]"
+              + " " + awayTeam.getTeamName() + ")"
+              + "\n");
+    }
+    //if cup match, shoot penalties;
+    if(fixture.isCup() && Objects.equals(footballTeamToMatchStats.get(homeTeam.getTeamName()).getGoals(), footballTeamToMatchStats.get(awayTeam.getTeamName()).getGoals()))
+      simulatePenalties();
+    return beginPostMatchSetup(standingList);
   }
 
   private static void beginPreMatchSetup(Fixture fixture) {
@@ -122,19 +152,57 @@ public class MatchEngine {
 
   private static void simulateOneHalfOfFootball() {
     double simulationTime =
-        MatchEngine.getCurrentTimeInGame() <= MatchEngineConstants.MINUTES_IN_FIRST_HALF ?
-            MatchEngineConstants.MINUTES_IN_FIRST_HALF
-            : MatchEngineConstants.MINUTES_IN_SECOND_HALF;
+        MatchEngine.getCurrentTimeInGame() < MatchEngineConstants.MINUTES_IN_FIRST_HALF ?
+            MatchEngineConstants.MINUTES_IN_FIRST_HALF + (double) new Random().nextInt(4)
+            : MatchEngineConstants.MINUTES_IN_SECOND_HALF + (double) new Random().nextInt(6);
 
     while (MatchEngine.getCurrentTimeInGame() <= simulationTime) {
       determineNextGameAction();
-      MatchEngine.setCurrentTimeInGame(MatchEngine.getCurrentTimeInGame() + 0.10D);
+      MatchEngine.setCurrentTimeInGame(MatchEngine.getCurrentTimeInGame() + 0.05D);
 
+//      MatchEngine.setCurrentTimeInGame(MatchEngine.getCurrentTimeInGame() + 0.50D);
       isDelayForUserRequired();
     }
   }
 
+  private static void simulatePenalties() {
+    int penaltiesTaken = 0;
+    int[] penaltyGoals = {0, 0};
+    Comparator<Player> penaltySorter = (o1, o2) -> o2.getTechnicalAttributes().getPenalties().compareTo(o1.getTechnicalAttributes().getPenalties());
+    List<Player> homePenaltySquad = homeTeam.getSquad();
+    homePenaltySquad.sort(penaltySorter);
+    List<Player> awayPenaltySquad = awayTeam.getSquad();
+    awayPenaltySquad.sort(penaltySorter);
+    while (penaltiesTaken%10 != 0 || penaltyGoals[0] == penaltyGoals[1] && penaltiesTaken < 100) {
+      Player playerHome = homePenaltySquad.get((penaltiesTaken/2)%homeTeam.getSquad().size());
+      int scoringChanceHome = (int)((playerHome.getMentalAttributes().getComposure()
+              + playerHome.getTechnicalAttributes().getPenalties()
+              + (0.5 * playerHome.getTechnicalAttributes().getShotPower()))/2.5);
+      Player gkAway = awayTeam.getMatchSetup().getSelectedFormation().getStartingLineup()[0];
+      int savesChanceAway = (gkAway.getGoalkeeperAttributes().getReflexes()
+              + gkAway.getGoalkeeperAttributes().getDiving());
+      penaltyGoals[0] += scoringChanceHome > savesChanceAway/2.2 ? 1 : 0;
+      penaltiesTaken++;
+
+      Player playerAway = awayPenaltySquad.get((penaltiesTaken/2)%awayTeam.getSquad().size());
+      int scoringChanceAway = (int)((playerAway.getMentalAttributes().getComposure()
+              + playerAway.getTechnicalAttributes().getPenalties()
+              + (0.5 * playerAway.getTechnicalAttributes().getShotPower()))/2.5);
+      Player gkHome = homeTeam.getMatchSetup().getSelectedFormation().getStartingLineup()[0];
+      int savesChanceHome = (gkHome.getGoalkeeperAttributes().getReflexes()
+              + gkHome.getGoalkeeperAttributes().getDiving());
+      penaltyGoals[1] += scoringChanceAway > savesChanceHome/2.2 ? 1 : 0;
+      penaltiesTaken++;
+    }
+    if(penaltiesTaken >= 99)
+      footballTeamToMatchStats.get(homeTeam.getTeamName()).setPenaltyShootout(penaltyGoals[0]+1);
+    else
+      footballTeamToMatchStats.get(homeTeam.getTeamName()).setPenaltyShootout(penaltyGoals[0]);
+    footballTeamToMatchStats.get(awayTeam.getTeamName()).setPenaltyShootout(penaltyGoals[1]);
+  }
+
   private static void determineNextGameAction() {
+    footballTeamToMatchStats.get(football.getPlayerInPossession().getCurrentClub().getTeamName()).addPosessionTick();
     if (RandomNumberGenerator.getRandomNumberBetweenZeroAndOneHundred() < 50) {
       passToAnotherTeamMate();
     } else {
@@ -151,7 +219,7 @@ public class MatchEngine {
   }
 
   private static void passToAnotherTeamMate() {
-    Pass pass = new Pass(getSquadCurrentlyInPossession(), football);
+    Pass pass = new Pass(getSquadCurrentlyInPossession(), getSquadNotCurrentlyInPossession(), football, footballTeamToMatchStats.get(football.getPlayerInPossession().getCurrentClub().getTeamName()));
     Player newPlayerInPossession = pass.getPlayerTheBallIsBeingPassedTo();
     football.setPlayerInPossession(newPlayerInPossession);
   }
@@ -170,13 +238,9 @@ public class MatchEngine {
   private static void checkIfAPlayerCanAttemptATackle() {
     List<Player> players = getSquadNotCurrentlyInPossession().stream()
         .filter(player -> player.getGameTicksUntilRecoveredFromTackle().equals(0)
-            && football.getCurrentXCoordinate().equals(player.getCurrentXCoordinate() + 1)
-            || football.getCurrentXCoordinate().equals(player.getCurrentXCoordinate() - 1)
-            || football.getCurrentYCoordinate().equals(player.getCurrentYCoordinate() + 1)
-            || football.getCurrentYCoordinate().equals(player.getCurrentYCoordinate() - 1))
-        .collect(Collectors.toList());
+            && player.distanceToFootball(football) < 1).toList();
 
-    if (players.size() > 0) {
+    if (!players.isEmpty()) {
       Player playerToChallengeForPossession = players
           .get(RandomNumberGenerator.getRandomNumberBetweenZeroAnGivenNumber(players.size()));
 
@@ -187,9 +251,9 @@ public class MatchEngine {
 
   private static void checkIfPlayerAttemptsShotAtGoal() {
     Shot shot = new Shot(football.getPlayerInPossession());
+    Player opposingTeamsGoalKeeper = getSquadNotCurrentlyInPossession().get(0);
 
-    if (shot.doesPlayerDecideToShoot()) {
-      Player opposingTeamsGoalKeeper = getSquadNotCurrentlyInPossession().get(0);
+    if (shot.doesPlayerDecideToShoot(opposingTeamsGoalKeeper)) {
       FootballTeamMatchStats matchStats = footballTeamToMatchStats
           .get(football.getPlayerInPossession().getCurrentClub().getTeamName());
 
@@ -267,13 +331,15 @@ public class MatchEngine {
 
   private static void isDelayForUserRequired() {
     // If the logGameEvents flag is true, Add small delay slowing number of Events displayed
-/*        try {
+    //TODO - only log major events
+        try {
             if (MatchEngine.isLoggingGameEvents()) {
-                TimeUnit.MILLISECONDS.sleep(400);
+//                Thread.sleep(65);
+                Thread.sleep(38);
             }
         } catch (InterruptedException e) {
             System.out.println(e);
-        }*/
+        }
   }
 
   public static double getCurrentTimeInGame() {
@@ -286,13 +352,16 @@ public class MatchEngine {
         .doubleValue();
   }
 
-  private static MatchResult beginPostMatchSetup() {
+  private static MatchResult beginPostMatchSetup(HashMap<Integer, Standing> standingList) {
     MatchResult matchResult = buildMatchResult();
 
-    updateStandingInformation(matchResult);
-    persistMatchResultToDatabase(matchResult);
+    if(!fixture.isCup()){
+//      updateStandingInformation(matchResult);
+//      persistMatchResultToDatabase(matchResult);
+      StandingBuilder standingBuilder = new StandingBuilder(matchResult, standingList);
+      standingBuilder.buildStandingsFromMatchResult();
+    }
     return matchResult;
-
   }
 
   private static MatchResult buildMatchResult() {
@@ -303,14 +372,14 @@ public class MatchEngine {
     return new MatchResult(MatchEngine.fixture, homeTeamMatchStats, awayTeamMatchStats);
   }
 
-  private static void updateStandingInformation(MatchResult matchResult) {
-    StandingBuilder standingBuilder = new StandingBuilder(matchResult);
-    standingBuilder.buildStandingsFromMatchResult();
-    standingBuilder.updateStandingsInDatabase();
-  }
-
-  private static void persistMatchResultToDatabase(MatchResult matchResult) {
-    MatchEngineDao matchEngineDao = new MatchEngineDaoImpl();
-    matchEngineDao.persistResultToDatabase(matchResult);
-  }
+//  private static void updateStandingInformation(MatchResult matchResult) {
+//    StandingBuilder standingBuilder = new StandingBuilder(matchResult);
+//    standingBuilder.buildStandingsFromMatchResult();
+//    standingBuilder.updateStandingsInDatabase();
+//  }
+//
+//  private static void persistMatchResultToDatabase(MatchResult matchResult) {
+//    MatchEngineDao matchEngineDao = new MatchEngineDaoImpl();
+//    matchEngineDao.persistResultToDatabase(matchResult);
+//  }
 }

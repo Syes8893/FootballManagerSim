@@ -1,5 +1,11 @@
 package com.elliot.footballmanager.fixture;
 
+import com.elliot.footballmanager.entity.Fixture;
+import com.elliot.footballmanager.entity.FootballTeam;
+import com.elliot.footballmanager.entity.League;
+
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -11,8 +17,12 @@ import java.util.List;
  */
 public interface FixtureGenerator {
 
-  public List<String> generateFixtureInsertStatements();
+  ArrayList<Fixture> fixtures = new ArrayList<>();
 
-  public void insertFixturesIntoDatabase(List<String> fixtures);
+  public void generateFixtures(Date date, ArrayList<FootballTeam> footballTeams);
+
+//  public List<String> generateFixtureInsertStatements(Date date, League league);
+//
+//  public void insertFixturesIntoDatabase(List<String> fixtures);
 
 }

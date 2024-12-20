@@ -12,6 +12,7 @@ public class MatchDaySquad implements Serializable {
 
   private Player[] startingLineup;
   private Player[] substitutions;
+  private Player[] reserves;
   private FootballTeamFormation formation;
 
   public MatchDaySquad() {
@@ -39,6 +40,14 @@ public class MatchDaySquad implements Serializable {
 
   public void setSubstitutions(Player[] substitutions) {
     this.substitutions = substitutions;
+  }
+
+  public Player[] getReserves() {
+    return reserves;
+  }
+
+  public void setReserves(Player[] reserves) {
+    this.reserves = reserves;
   }
 
   public FootballTeamFormation getFormation() {

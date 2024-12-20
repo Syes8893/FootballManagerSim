@@ -1,5 +1,6 @@
 package com.elliot.footballmanager.entity.dao.impl;
 
+import com.elliot.footballmanager.entity.GameManager;
 import com.elliot.footballmanager.entity.dao.FixtureDao;
 import com.elliot.footballmanager.entity.Fixture;
 import java.sql.Connection;
@@ -8,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.elliot.footballmanager.DateUtils;
@@ -18,19 +20,32 @@ import com.elliot.footballmanager.entity.dao.FootballTeamDao;
 public class FixtureDaoImpl implements FixtureDao {
 
   @Override
-  public void insertFixturesIntoDatabase(List<String> allFixtures) {
-    try (Connection conn = SqliteDatabaseConnector.connect();
-        Statement stmt = conn.createStatement()) {
-      for (String fixture : allFixtures) {
-        stmt.executeUpdate(fixture);
+  public void insertFixturesIntoDatabase(List<Fixture> allFixtures) {
+    try (Connection conn = SqliteDatabaseConnector.connect()) {
+      conn.createStatement().execute("DELETE FROM FIXTURE");
+      Statement stmt = conn.createStatement();
+      int index = 0;
+      for (Fixture fixture : allFixtures) {
+//        System.out.println(index++);
+//        System.out.println(fixture.getFixtureId());
+//        System.out.println(fixture.getHomeTeam().getTeamName());
+//        System.out.println(fixture.getAwayTeam().getTeamName());
+//        System.out.println(fixture.getDateOfFixture());
+//        System.out.println(fixture.getLeagueId());
+//        System.out.println(fixture.getCupLevel());
+        stmt.addBatch("INSERT INTO FIXTURE (FIXTURE_UUID, HOME_TEAM, AWAY_TEAM, DATE_OF_MATCH, LEAGUE_ID, CUP_LEVEL) "
+          + "VALUES ('" + fixture.getFixtureId() + "', '" + fixture.getHomeTeam().getTeamName().replace("'", "''") + "', '" + fixture.getAwayTeam().getTeamName().replace("'", "''") + "'"
+          + ", '" + DateUtils.FIXTURE_DATE_FORMAT.format(fixture.getDateOfFixture()) + "', " + fixture.getLeagueId()
+          + ", " + fixture.getCupLevel() + ")");
       }
+      stmt.executeBatch();
     } catch (SQLException e) {
       e.printStackTrace();
     }
   }
 
   @Override
-  public Queue<Fixture> getFootballTeamsUpcomingFixtures(FootballTeam footballTeam) {
+  public Queue<Fixture> getFootballTeamsUpcomingFixtures(FootballTeam footballTeam, Date currentDate) {
     String query = "SELECT * FROM FIXTURE WHERE HOME_TEAM = ? OR AWAY_TEAM = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
@@ -48,7 +63,7 @@ public class FixtureDaoImpl implements FixtureDao {
         return new LinkedList<Fixture>();
       }
 
-      Queue<Fixture> upcomingFixtures = new LinkedList<Fixture>();
+      ArrayList<Fixture> nextFixtures = new ArrayList<>();
       FootballTeamDao footballTeamDao = new FootballTeamDaoImpl();
       while (rs.next()) {
         FootballTeam homeTeam = footballTeamDao.getFootballTeamByName(rs.getString("HOME_TEAM"));
@@ -56,17 +71,22 @@ public class FixtureDaoImpl implements FixtureDao {
 
         String dateString = rs.getString("DATE_OF_MATCH");
         Date date = DateUtils.FIXTURE_DATE_FORMAT.parse(dateString);
-
-        upcomingFixtures.add(new Fixture(rs.getInt("FIXTURE_ID"), homeTeam, awayTeam,
-            date, rs.getInt("LEAGUE_ID")));
+        //Check if fixture date is after current date
+        if(date.after(currentDate))
+           nextFixtures.add(new Fixture(UUID.fromString(rs.getString("FIXTURE_ID")), homeTeam, awayTeam,
+              date, rs.getInt("LEAGUE_ID"), rs.getInt("CUP_LEVEL")));
       }
+      nextFixtures.sort(Comparator.comparing(Fixture::getDateOfFixture));
+      Queue<Fixture> upcomingFixtures = new LinkedList<>();
+      for(Fixture f : nextFixtures)
+        upcomingFixtures.offer(f);
       return upcomingFixtures;
     } catch (SQLException e) {
       e.printStackTrace();
     } catch (ParseException e) {
       e.printStackTrace();
     }
-    return new LinkedList<Fixture>();
+    return new LinkedList<>();
   }
 
   @Override
@@ -91,8 +111,8 @@ public class FixtureDaoImpl implements FixtureDao {
         FootballTeam homeTeam = footballTeamDao.getFootballTeamByName(rs.getString("HOME_TEAM"));
         FootballTeam awayTeam = footballTeamDao.getFootballTeamByName(rs.getString("AWAY_TEAM"));
 
-        fixtures.add(new Fixture(rs.getInt("FIXTURE_ID"), homeTeam, awayTeam,
-            date, rs.getInt("LEAGUE_ID")));
+        fixtures.add(new Fixture(UUID.fromString(rs.getString("FIXTURE_ID")), homeTeam, awayTeam,
+            date, rs.getInt("LEAGUE_ID"), rs.getInt("CUP_LEVEL")));
       }
 
 

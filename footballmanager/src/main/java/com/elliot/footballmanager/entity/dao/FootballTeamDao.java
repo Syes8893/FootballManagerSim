@@ -9,6 +9,11 @@ import java.util.Collection;
 public interface FootballTeamDao {
 
   /**
+   * @return A Collection of all the FootballTeams.
+   */
+  public Collection<FootballTeam> getAllFootballTeams();
+
+  /**
    * @param leagueId The leagueId to return all the FootballTeams currently associated with that
    * leagueId.
    * @return A Collection of all the FootballTeams that are currently within the League via the

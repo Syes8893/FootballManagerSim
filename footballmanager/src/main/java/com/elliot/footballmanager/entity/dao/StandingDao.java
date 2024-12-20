@@ -3,6 +3,9 @@ package com.elliot.footballmanager.entity.dao;
 import com.elliot.footballmanager.entity.FootballTeam;
 
 import com.elliot.footballmanager.entity.Standing;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -10,14 +13,14 @@ import java.util.List;
  */
 public interface StandingDao {
 
-  public void createNewStandingForFootballTeam(FootballTeam footballTeam);
+  public void createNewStandingForFootballTeams(List<FootballTeam> footballTeams);
 
   /**
-   * Updates the Standing object stored in the database
+   * Updates the Standings stored in the database
    *
-   * @param standing Standing object to be updated
+   * @param standings Standings to be updated
    */
-  public void updateStandingRecord(Standing standing);
+  public void updateStandingRecords(Collection<Standing> standings);
 
   /**
    * @param footballTeamId The FootballTeam you want to retrieve the Standing object for

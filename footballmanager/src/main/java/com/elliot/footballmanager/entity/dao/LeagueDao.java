@@ -16,7 +16,7 @@ public interface LeagueDao {
    * @return A Map of all the available leagues for the given CountryId: Key : leagueId Value :
    * League object
    */
-  public Map<Integer, League> getAllLeaguesById(Integer countryId);
+  public List<League> getAllLeaguesById(Integer countryId, boolean interlands);
 
   /**
    * @param leagueId The unique Id for the League you want to retrieve.

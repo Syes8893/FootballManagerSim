@@ -3,6 +3,7 @@ package com.elliot.footballmanager;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Utility class to provide helper methods simplifying dealing with the date object.
@@ -12,9 +13,9 @@ import java.util.Date;
 public class DateUtils {
 
   public static SimpleDateFormat FIXTURE_DATE_FORMAT = new SimpleDateFormat(
-      "EEE MMM d HH:mm:ss zzz yyyy");
+      "EEEE MMM dd HH:mm:ss zzzz yyyy");
   public static SimpleDateFormat FIXTURE_DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
-  private static final Calendar calendar = Calendar.getInstance();
+  private static final Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
 
   public DateUtils() {
 
@@ -25,4 +26,5 @@ public class DateUtils {
     calendar.add(Calendar.DATE, days);
     return calendar.getTime();
   }
+
 }

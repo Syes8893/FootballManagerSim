@@ -80,16 +80,16 @@ public class FootballPitchPlayerPlacer {
 
   private static void addTeamMidfieldersToPitch(MatchDaySquad matchDaySquad,
       Integer rowToInsertPlayersInto) {
-    List<Player> defenders = getPlayersByPosition(matchDaySquad,
+    List<Player> midfielders = getPlayersByPosition(matchDaySquad,
         Position.GeneralisedPosition.MIDFIELDER);
-    placePlayersOntoPitch(defenders, rowToInsertPlayersInto);
+    placePlayersOntoPitch(midfielders, rowToInsertPlayersInto);
   }
 
   private static void addTeamAttackersToPitch(MatchDaySquad matchDaySquad,
       Integer rowToInsertPlayersInto) {
-    List<Player> defenders = getPlayersByPosition(matchDaySquad,
+    List<Player> attackers = getPlayersByPosition(matchDaySquad,
         Position.GeneralisedPosition.ATTACKER);
-    placePlayersOntoPitch(defenders, rowToInsertPlayersInto);
+    placePlayersOntoPitch(attackers, rowToInsertPlayersInto);
   }
 
   private static List<Player> getPlayersByPosition(MatchDaySquad matchDaySquad,
@@ -100,15 +100,22 @@ public class FootballPitchPlayerPlacer {
     int playersRequired = getNumberOfPlayersRequiredForGeneralisedPosition(matchDaySquad,
         requiredGeneralPosition);
 
-    for (Player player : startingLineup) {
+    for (int i = 0; i < startingLineup.length; i++) {
+      Player player = startingLineup[i];
       // Check if we have enough players for the selected formation (Otherwise it can return more players than needed);
       if (playersForGeneralisedPosition.size() >= playersRequired) {
         return playersForGeneralisedPosition;
       }
 
+      //TODO - check why player can be null (check why startin lineup isnt filled), code below works but gives other errors
+//      if(player == null)
+//        continue;
+
       for (Position position : player.getPreferredPositions()) {
-        if (Position.getGeneralPositionBySpecificPosition(position).equals(requiredGeneralPosition)
-            && !alreadyPlacedPlayers.contains(player)) {
+        if (
+//        Position.getGeneralPositionBySpecificPosition(position).equals(requiredGeneralPosition) &&
+//        Line above causes problems when team is filled using a player that out of position (for ex. midfielder in attacking position
+        !alreadyPlacedPlayers.contains(player)) {
           alreadyPlacedPlayers.add(player);
           playersForGeneralisedPosition.add(player);
           break;

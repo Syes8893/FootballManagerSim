@@ -13,9 +13,13 @@ public class FootballTeamMatchStats {
   private Integer goals = 0;
   private Integer shots = 0;
   private Integer shotsOnTarget = 0;
+  private Integer passes = 0;
+
+  private Integer posessionTicks = 0;
   private Integer corners = 0;
   private Integer freekicks = 0;
   private Integer penalties = 0;
+  private int penaltyShootout = 0;
   private Integer yellowCards = 0;
   private Integer redCards = 0;
 
@@ -59,6 +63,26 @@ public class FootballTeamMatchStats {
     this.shotsOnTarget = shotsOnTarget;
   }
 
+  public Integer getPasses() {
+    return passes;
+  }
+
+  public void addPass(){
+    this.passes++;
+  }
+
+  public void setPasses(Integer passes) {
+    this.passes = passes;
+  }
+
+  public Integer getPosessionTicks() {
+    return posessionTicks;
+  }
+
+  public void addPosessionTick() {
+    this.posessionTicks++;
+  }
+
   public Integer getCorners() {
     return corners;
   }
@@ -81,6 +105,18 @@ public class FootballTeamMatchStats {
 
   public void setPenalties(Integer penalties) {
     this.penalties = penalties;
+  }
+
+  public void setPosessionTicks(Integer posessionTicks) {
+    this.posessionTicks = posessionTicks;
+  }
+
+  public int getPenaltyShootout() {
+    return penaltyShootout;
+  }
+
+  public void setPenaltyShootout(int penaltyShootout) {
+    this.penaltyShootout = penaltyShootout;
   }
 
   public Integer getYellowCards() {

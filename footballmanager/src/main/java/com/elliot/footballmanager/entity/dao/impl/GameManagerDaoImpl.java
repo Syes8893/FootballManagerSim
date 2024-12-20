@@ -8,7 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.elliot.footballmanager.DateUtils;
 import com.elliot.footballmanager.entity.Country;
@@ -29,7 +31,7 @@ import com.elliot.footballmanager.entity.dao.ManagerDao;
 public class GameManagerDaoImpl implements GameManagerDao {
 
   @Override
-  public void saveGame(GameManager gameManager) {
+  public boolean saveGame(GameManager gameManager) {
     String deletePreviousSave = "DELETE FROM GAME_MANAGER";
     String insertNewSave = "INSERT INTO GAME_MANAGER VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -37,7 +39,7 @@ public class GameManagerDaoImpl implements GameManagerDao {
         Statement stmt = conn.createStatement();
         PreparedStatement pDelete = conn.prepareStatement(deletePreviousSave)) {
       if (gameManager.getCurrentFootballTeam() == null) {
-        return;
+        return false;
       }
 
       pDelete.executeUpdate();
@@ -54,16 +56,15 @@ public class GameManagerDaoImpl implements GameManagerDao {
       // If count != 1 the statement did not successfully persist the GameManager data into the database
       if (pInsert.executeUpdate() != 1) {
         throw new SQLException("The Game has not successfully been saved! Please try again.");
-      } else {
-        System.out.println("Saved successfully!");
       }
     } catch (SQLException e) {
       e.printStackTrace();
     }
+    return true;
   }
 
   @Override
-  public void loadSavedGame(GameManager gameManager) {
+  public boolean loadSavedGame(GameManager gameManager) {
     String query = "SELECT * FROM GAME_MANAGER WHERE GAME_MANAGER_ID = 1";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
@@ -71,7 +72,7 @@ public class GameManagerDaoImpl implements GameManagerDao {
         ResultSet rs = stmt.executeQuery(query)) {
       if (rs.isAfterLast()) {
         System.out.println("No save game found! Please create a new game first.");
-        return;
+        return false;
       }
 
       CountryDao countryDao = new CountryDaoImpl();
@@ -79,10 +80,12 @@ public class GameManagerDaoImpl implements GameManagerDao {
 
       LeagueDao leagueDao = new LeagueDaoImpl();
       League league = leagueDao.getLeagueById(rs.getInt("SELECTED_LEAGUE_ID"));
+      league.setFootballTeams(new FootballTeamDaoImpl().getAllFootballTeams(league.getLeagueId()));
 
       FootballTeamDao footballTeamDao = new FootballTeamDaoImpl();
       FootballTeam footballTeam = footballTeamDao
           .getFootballTeamById(rs.getInt("SELECTED_FOOTBALL_TEAM_ID"));
+      footballTeam.getMatchSetup();
 
       ManagerDao managerDao = new ManagerDaoImpl();
       Manager manager = managerDao.getManagerById(rs.getInt("MANAGER_ID"));
@@ -100,5 +103,6 @@ public class GameManagerDaoImpl implements GameManagerDao {
     } catch (ParseException e) {
       e.printStackTrace();
     }
+    return true;
   }
 }

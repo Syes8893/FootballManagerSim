@@ -18,9 +18,8 @@ import com.elliot.footballmanager.database.SqliteDatabaseConnector;
  */
 public class LeagueDaoImpl implements LeagueDao {
 
-  @Override
   public List<League> getAllLeagues() {
-    String query = "SELECT * FROM LEAGUE";
+    String query = "SELECT league_id, league_name FROM LEAGUE";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -28,8 +27,8 @@ public class LeagueDaoImpl implements LeagueDao {
 
       List<League> allLeagues = new ArrayList<League>();
       while (rs.next()) {
-        League league = new League(rs.getInt("LEAGUE_ID"), rs.getString("LEAGUE_NAME"),
-            rs.getInt("COUNTRY_ID"));
+        League league = new League(rs.getInt("league_id"), rs.getString("league_name"),
+            -1);
         allLeagues.add(league);
       }
       return allLeagues;
@@ -39,10 +38,9 @@ public class LeagueDaoImpl implements LeagueDao {
     return null;
   }
 
-  @Override
-  public Map<Integer, League> getAllLeaguesById(Integer countryId) {
-    Map<Integer, League> allLeagues = new HashMap<Integer, League>();
-    String query = "SELECT * FROM LEAGUE WHERE COUNTRY_ID = ?";
+  public List<League> getAllLeaguesById(Integer countryId, boolean interlands) {
+    List<League> allLeagues = new ArrayList<>();
+    String query = "SELECT DISTINCT league_id, league_name FROM TEAM WHERE nationality_id = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -50,9 +48,11 @@ public class LeagueDaoImpl implements LeagueDao {
       ResultSet rs = pstmt.executeQuery();
 
       while (rs.next()) {
-        League league = new League(rs.getInt("LEAGUE_ID"), rs.getString("LEAGUE_NAME"),
-            rs.getInt("COUNTRY_ID"));
-        allLeagues.put(league.getLeagueId(), league);
+        if(!interlands && rs.getInt("league_id") == 78)
+          continue;
+        League league = new League(rs.getInt("league_id"), rs.getString("league_name"),
+            countryId);
+        allLeagues.add(league);
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -60,9 +60,8 @@ public class LeagueDaoImpl implements LeagueDao {
     return allLeagues;
   }
 
-  @Override
   public League getLeagueById(Integer leagueId) {
-    String query = "SELECT * FROM LEAGUE WHERE LEAGUE_ID = ?";
+    String query = "SELECT league_id, league_name FROM LEAGUE WHERE league_id = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -73,8 +72,8 @@ public class LeagueDaoImpl implements LeagueDao {
       if (rs.isAfterLast()) {
         return null;
       }
-      return new League(rs.getInt("LEAGUE_ID"), rs.getString("LEAGUE_NAME"),
-          rs.getInt("COUNTRY_ID"));
+      return new League(leagueId, rs.getString("league_name"),
+          0);
     } catch (SQLException e) {
       e.printStackTrace();
     }

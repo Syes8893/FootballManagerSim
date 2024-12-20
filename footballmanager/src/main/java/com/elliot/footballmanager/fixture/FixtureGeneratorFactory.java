@@ -20,7 +20,7 @@ public class FixtureGeneratorFactory {
     if (FixtureGeneratorType.ROUND_ROBIN.equals(fixtureGeneratorType)) {
       return new RoundRobinFixtureGenerator();
     } else if (FixtureGeneratorType.GROUP_TOURNAMENT.equals(fixtureGeneratorType)) {
-      return new GroupTouramentFixtureGenerator();
+      return new GroupTournamentFixtureGenerator();
     } else {
       return null;
     }

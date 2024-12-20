@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import com.elliot.footballmanager.database.SqliteDatabaseConnector;
 
@@ -17,9 +17,31 @@ import com.elliot.footballmanager.database.SqliteDatabaseConnector;
 public class FootballTeamDaoImpl implements FootballTeamDao {
 
   @Override
-  public Collection<FootballTeam> getAllFootballTeams(Integer leagueId) {
-    Collection<FootballTeam> footballTeams = new ArrayList<FootballTeam>();
-    String query = "SELECT * FROM FOOTBALL_TEAM WHERE LEAGUE_ID = ?";
+  public ArrayList<FootballTeam> getAllFootballTeams() {
+    ArrayList<FootballTeam> footballTeams = new ArrayList<FootballTeam>();
+    String query = "SELECT DISTINCT team_id, team_name, league_id, home_stadium, club_worth_eur FROM TEAM";
+
+    try (Connection conn = SqliteDatabaseConnector.connect();
+         PreparedStatement pstmt = conn.prepareStatement(query)) {
+      ResultSet rs = pstmt.executeQuery();
+
+      while (rs.next()) {
+        FootballTeam footballTeam = new FootballTeam(rs.getInt("team_id"),
+                rs.getString("team_name"),
+                rs.getInt("league_id"), "PLACEHOLDER LOCATION",
+                rs.getString("home_stadium"), 0, rs.getInt("club_worth_eur"));
+        footballTeams.add(footballTeam);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return footballTeams;
+  }
+
+  @Override
+  public ArrayList<FootballTeam> getAllFootballTeams(Integer leagueId) {
+    ArrayList<FootballTeam> footballTeams = new ArrayList<FootballTeam>();
+    String query = "SELECT team_id, team_name, league_id, home_stadium, club_worth_eur FROM TEAM WHERE league_id = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -28,10 +50,10 @@ public class FootballTeamDaoImpl implements FootballTeamDao {
       ResultSet rs = pstmt.executeQuery();
 
       while (rs.next()) {
-        FootballTeam footballTeam = new FootballTeam(rs.getInt("FOOTBALL_TEAM_ID"),
-            rs.getString("TEAM_NAME"),
-            rs.getInt("LEAGUE_ID"), rs.getString("LOCATION"),
-            rs.getString("STADIUM"), rs.getInt("STADIUM_CAPACITY"));
+        FootballTeam footballTeam = new FootballTeam(rs.getInt("team_id"),
+            rs.getString("team_name"),
+            rs.getInt("league_id"), "PLACEHOLDER LOCATION",
+            rs.getString("home_stadium"), 0, rs.getInt("club_worth_eur"));
         footballTeams.add(footballTeam);
       }
     } catch (SQLException e) {
@@ -42,7 +64,7 @@ public class FootballTeamDaoImpl implements FootballTeamDao {
 
   @Override
   public FootballTeam getFootballTeamById(Integer footballTeamId) {
-    String query = "SELECT *FROM FOOTBALL_TEAM WHERE FOOTBALL_TEAM_ID = ?";
+    String query = "SELECT team_id, team_name, league_id, home_stadium, club_worth_eur FROM TEAM WHERE team_id = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -53,9 +75,10 @@ public class FootballTeamDaoImpl implements FootballTeamDao {
       if (rs.isAfterLast()) {
         return null;
       }
-      return new FootballTeam(rs.getInt("FOOTBALL_TEAM_ID"), rs.getString("TEAM_NAME"),
-          rs.getInt("LEAGUE_ID"), rs.getString("LOCATION"),
-          rs.getString("STADIUM"), rs.getInt("STADIUM_CAPACITY"));
+      return new FootballTeam(rs.getInt("team_id"),
+              rs.getString("team_name"),
+              rs.getInt("league_id"), "PLACEHOLDER LOCATION",
+              rs.getString("home_stadium"), 0, rs.getInt("club_worth_eur"));
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -64,7 +87,7 @@ public class FootballTeamDaoImpl implements FootballTeamDao {
 
   @Override
   public FootballTeam getFootballTeamByName(String footballTeamName) {
-    String query = "SELECT *FROM FOOTBALL_TEAM WHERE TEAM_NAME LIKE ?";
+    String query = "SELECT team_id, team_name, league_id, home_stadium, club_worth_eur FROM TEAM WHERE team_name LIKE ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -75,9 +98,10 @@ public class FootballTeamDaoImpl implements FootballTeamDao {
       if (rs.isAfterLast()) {
         return null;
       }
-      return new FootballTeam(rs.getInt("FOOTBALL_TEAM_ID"), rs.getString("TEAM_NAME"),
-          rs.getInt("LEAGUE_ID"), rs.getString("LOCATION"),
-          rs.getString("STADIUM"), rs.getInt("STADIUM_CAPACITY"));
+      return new FootballTeam(rs.getInt("team_id"),
+              rs.getString("team_name"),
+              rs.getInt("league_id"), "PLACEHOLDER LOCATION",
+              rs.getString("home_stadium"), 0, rs.getInt("club_worth_eur"));
     } catch (SQLException e) {
       e.printStackTrace();
     }

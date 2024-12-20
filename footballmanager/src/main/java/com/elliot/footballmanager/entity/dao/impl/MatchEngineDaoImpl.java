@@ -7,6 +7,10 @@ import com.elliot.footballmanager.match.MatchResult;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Elliot
@@ -14,19 +18,15 @@ import java.sql.SQLException;
 public class MatchEngineDaoImpl implements MatchEngineDao {
 
   @Override
-  public void persistResultToDatabase(MatchResult matchResult) {
-    String query = "INSERT INTO MATCH_RESULT (MATCH_RESULT_ID, FIXTURE_ID, HOME_TEAM_GOALS, AWAY_TEAM_GOALS, MATCH_RESULT) VALUES (?, ?, ?, ?, ?)";
-
-    try (Connection conn = SqliteDatabaseConnector.connect();
-        PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-      pstmt.setRowId(1, null);
-      pstmt.setInt(2, matchResult.getFixture().getFixtureId());
-      pstmt.setInt(3, matchResult.getHomeTeamMatchStats().getGoals());
-      pstmt.setInt(4, matchResult.getAwayTeamMatchStats().getGoals());
-      pstmt.setString(5, matchResult.getResult().getResultString());
-
-      pstmt.executeUpdate();
+  public void persistResultsToDatabase(Collection<MatchResult> matchResults) {
+    try (Connection conn = SqliteDatabaseConnector.connect()) {
+      Statement statement = conn.createStatement();
+      for(MatchResult matchResult : matchResults){
+        statement.addBatch("INSERT INTO MATCH_RESULT (FIXTURE_ID, HOME_TEAM_GOALS, AWAY_TEAM_GOALS, MATCH_RESULT, HOME_TEAM_SHOOTOUT, AWAY_TEAM_SHOOTOUT) VALUES"
+        + " ('" + matchResult.getFixture() + "'," + matchResult.getHomeTeamMatchStats().getGoals() + ", " + matchResult.getAwayTeamMatchStats().getGoals()
+        + ", '" + matchResult.getResult() + "', " + matchResult.getHomeTeamMatchStats().getPenaltyShootout() + ", " + matchResult.getAwayTeamMatchStats().getPenaltyShootout() + ")");
+      }
+      statement.executeBatch();
     } catch (SQLException e) {
       e.printStackTrace();
     }

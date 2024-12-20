@@ -12,9 +12,9 @@ import com.elliot.footballmanager.entity.FootballTeam;
  */
 public interface FixtureDao {
 
-  public void insertFixturesIntoDatabase(List<String> allFixtures);
+  public void insertFixturesIntoDatabase(List<Fixture> allFixtures);
 
-  public Queue<Fixture> getFootballTeamsUpcomingFixtures(FootballTeam footballTeam);
+  public Queue<Fixture> getFootballTeamsUpcomingFixtures(FootballTeam footballTeam, Date date);
 
   public List<Fixture> getFixturesForGivenDate(Date date);
 }

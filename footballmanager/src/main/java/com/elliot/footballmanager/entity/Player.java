@@ -1,5 +1,7 @@
 package com.elliot.footballmanager.entity;
 
+import com.elliot.footballmanager.ColorUtils;
+import com.elliot.footballmanager.match.model.Football;
 import com.elliot.footballmanager.match.model.Position;
 import java.io.Serializable;
 import java.util.Set;
@@ -20,7 +22,7 @@ import com.elliot.footballmanager.entity.attributes.TechnicalAttributes;
 public class Player implements Serializable {
 
   private Integer id;
-  private String name;
+  private String name, fullName;
   private Integer age;
   private String nationality;
   private Integer overallRating;
@@ -49,9 +51,10 @@ public class Player implements Serializable {
 
   }
 
-  public Player(Integer id, String name, Integer age, String nationality, Integer overallRating,
+  public Player(Integer id, String name, String fullName, Integer age, String nationality, Integer overallRating,
       FootballTeam currentClub, Double value, Double wages, Set<Position> preferredPositions) {
     this.id = id;
+    this.fullName = fullName;
     this.name = name;
     this.age = age;
     this.nationality = nationality;
@@ -106,9 +109,23 @@ public class Player implements Serializable {
   public String getName() {
     return name;
   }
+  public String getNameAndOverall() {
+    return name + " (" + overallRating + ")";
+  }
+  public String getNameAndOverallAndPosition() {
+    return name + " (" + overallRating + ") " + ColorUtils.YELLOW_BOLD + preferredPositions + ColorUtils.RESET;
+  }
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getFullName() {
+    return fullName;
+  }
+
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
   }
 
   public Integer getAge() {
@@ -216,6 +233,11 @@ public class Player implements Serializable {
   }
 
   public Integer getCurrentXCoordinate() {
+//    if(currentXCoordinate == null){
+//      System.out.println(name + " / " + currentClub.getTeamName() + "\n ");
+//      for(Player p : currentClub.getMatchSetup().getSelectedFormation().getStartingLineup())
+//        System.out.println(p.getName() + " / "+ p.getPreferredPositions() + " / " + p.getCurrentXCoordinate());
+//    }
     return currentXCoordinate;
   }
 
@@ -255,4 +277,15 @@ public class Player implements Serializable {
   public void setGameTicksUntilRecoveredFromTackle(Integer gameTicksUntilRecoveredFromTackle) {
     this.gameTicksUntilRecoveredFromTackle = gameTicksUntilRecoveredFromTackle;
   }
+
+  public double distanceToFootball(Football football){
+    return Math.sqrt(Math.pow(football.getCurrentXCoordinate()-getCurrentXCoordinate(), 2)
+      + Math.pow(football.getCurrentYCoordinate()-getCurrentYCoordinate(), 2));
+  }
+
+  public double distanceToPlayer(Player player){
+    return Math.sqrt(Math.pow(player.getCurrentXCoordinate()-getCurrentXCoordinate(), 2)
+            + Math.pow(player.getCurrentYCoordinate()-getCurrentYCoordinate(), 2));
+  }
+
 }

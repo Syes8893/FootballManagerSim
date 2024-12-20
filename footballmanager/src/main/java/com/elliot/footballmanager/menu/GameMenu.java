@@ -7,7 +7,7 @@ package com.elliot.footballmanager.menu;
  */
 public interface GameMenu {
 
-  public void beginMenuSelectionLoop();
+  void beginMenuSelectionLoop();
 
-  public void displayMenuOptions();
+  void displayMenuOptions();
 }

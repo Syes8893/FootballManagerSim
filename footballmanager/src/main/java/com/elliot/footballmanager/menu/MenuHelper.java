@@ -7,6 +7,7 @@ import com.elliot.footballmanager.entity.GameManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Helper class for methods that can be used across all the menu classes.
@@ -19,14 +20,14 @@ public class MenuHelper {
 
   }
 
-  public static Map<Integer, FootballTeam> buildFootballTeamMapDisplay(GameManager gameManager) {
-    Map<Integer, FootballTeam> footballTeamToIds = new HashMap<Integer, FootballTeam>();
-
-    FootballTeamDao footballTeamDao = new FootballTeamDaoImpl();
-    for (FootballTeam footballTeam : footballTeamDao
-        .getAllFootballTeams(gameManager.getCurrentLeague().getLeagueId())) {
-      footballTeamToIds.put(footballTeam.getFootballTeamId(), footballTeam);
-    }
-    return footballTeamToIds;
-  }
+//  public static Map<Integer, FootballTeam> buildFootballTeamMapDisplay(GameManager gameManager) {
+//    TreeMap<Integer, FootballTeam> footballTeamToIds = new TreeMap<>();
+//
+//    FootballTeamDao footballTeamDao = new FootballTeamDaoImpl();
+//    for (FootballTeam footballTeam : footballTeamDao
+//        .getAllFootballTeams(gameManager.getCurrentLeague().getLeagueId())) {
+//      footballTeamToIds.put(footballTeam.getFootballTeamId(), footballTeam);
+//    }
+//    return footballTeamToIds;
+//  }
 }

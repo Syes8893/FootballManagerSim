@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.elliot.footballmanager.DateUtils;
 import com.elliot.footballmanager.entity.FootballTeam;
 import com.elliot.footballmanager.entity.dao.FootballTeamDao;
 import com.elliot.footballmanager.entity.dao.impl.FootballTeamDaoImpl;
@@ -31,17 +32,17 @@ public abstract class AbstractFixtureFactory {
 
     FootballTeamDao footballTeamDao = new FootballTeamDaoImpl();
     for (League league : this.getLeaguesForGeneration()) {
-      league.setFootballTeams(
-          new ArrayList<FootballTeam>(footballTeamDao.getAllFootballTeams(league.getLeagueId())));
+      league.setFootballTeams(new ArrayList<>(footballTeamDao.getAllFootballTeams(league.getLeagueId())));
     }
   }
 
-  protected String createFixtureInsertStatement(FootballTeam homeTeam, FootballTeam awayTeam,
-      Date dateOfFixture) {
-    return "INSERT INTO FIXTURE (HOME_TEAM, AWAY_TEAM, DATE_OF_MATCH, LEAGUE_ID) "
-        + "VALUES ('" + homeTeam.getTeamName() + "', '" + awayTeam.getTeamName() + "'"
-        + ", '" + dateOfFixture + "', " + homeTeam.getLeagueId() + ")";
-  }
+//  protected String createFixtureInsertStatement(FootballTeam homeTeam, FootballTeam awayTeam,
+//      Date dateOfFixture, int cupLevel) {
+//    return "INSERT INTO FIXTURE (HOME_TEAM, AWAY_TEAM, DATE_OF_MATCH, LEAGUE_ID, CUP_LEVEL) "
+//        + "VALUES ('" + (homeTeam != null ? homeTeam.getTeamName() : null) + "', '" + (awayTeam != null ? awayTeam.getTeamName() : null) + "'"
+//        + ", '" + DateUtils.FIXTURE_DATE_FORMAT.format(dateOfFixture) + "', " + homeTeam.getLeagueId()
+//        + ", " + cupLevel + ")";
+//  }
 
   public List<League> getLeaguesForGeneration() {
     return leaguesForGeneration;

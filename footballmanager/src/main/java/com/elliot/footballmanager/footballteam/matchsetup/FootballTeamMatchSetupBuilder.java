@@ -29,7 +29,7 @@ public class FootballTeamMatchSetupBuilder {
    * for.
    * @return A newly populated FootballTeamMatchObject.
    */
-  public static FootballTeamMatchSetup buildNewMatchSetup(FootballTeam incomingFootballTeam) {
+  public static FootballTeamMatchSetup buildNewMatchSetup(FootballTeam incomingFootballTeam, FootballTeamFormation formation) {
     footballTeam = incomingFootballTeam;
     footballTeamSquad = footballTeam.getSquad();
 
@@ -37,7 +37,15 @@ public class FootballTeamMatchSetupBuilder {
 
     MatchDaySquad[] matchDaySquads = generateFormations();
 
-    footballTeamMatchSetup.setSelectedFormation(matchDaySquads[0]);
+    if(formation == null)
+      footballTeamMatchSetup.setSelectedFormation(matchDaySquads[0]);
+    else {
+      for(MatchDaySquad matchDaySquad : matchDaySquads)
+        if(matchDaySquad.getFormation().toString().equals(formation.toString())){
+          footballTeamMatchSetup.setSelectedFormation(matchDaySquad);
+          break;
+        }
+    }
     footballTeamMatchSetup.setAvailableFormations(matchDaySquads);
 
     footballTeamMatchSetup.setFreekickTaker(getBestFreekickTaker(footballTeam.getSquad()));
@@ -63,6 +71,7 @@ public class FootballTeamMatchSetupBuilder {
       matchDaySquadInformation.setFormation(formation);
       matchDaySquadInformation.setStartingLineup(buildStartingLineup(formation));
       matchDaySquadInformation.setSubstitutions(buildSubstitutions(matchDaySquadInformation));
+      matchDaySquadInformation.setReserves(buildReserves(matchDaySquadInformation));
 
       matchDaySquads[i] = matchDaySquadInformation;
     }
@@ -106,7 +115,8 @@ public class FootballTeamMatchSetupBuilder {
       }
     }
     //TODO: Sort players within lists based upon their attributes then add the best 11 to starting lineup
-    startingLineup.add(goalkeepers.get(0));
+//    startingLineup.add(goalkeepers.get(0));
+    addPlayerToStartingLineup(startingLineup, goalkeepers, 1);
   }
 
   private static void addBestDefenders(List<Player> startingLineup, Integer numberOfDefenders) {
@@ -152,6 +162,17 @@ public class FootballTeamMatchSetupBuilder {
         startingLineup.add(player);
       }
     }
+    //found error: players are split before adding to team and as such there may be a lack of players for defense, midfield of attack
+    //which leaves the lineup not filled completely
+    //TODO - properly iron out a solution as to not use attackers for defense before having added attackers
+    if(playersAddedSoFar < numberOfPlayersToAdd) {
+      for (Player player : footballTeamSquad) {
+        if(!startingLineup.contains(player) && playersAddedSoFar < numberOfPlayersToAdd){
+          playersAddedSoFar++;
+          startingLineup.add(player);
+        }
+      }
+    }
   }
 
   private static Player[] buildSubstitutions(MatchDaySquad matchDaySquad) {
@@ -168,6 +189,23 @@ public class FootballTeamMatchSetupBuilder {
       }
     }
     return substitutions;
+  }
+
+  private static Player[] buildReserves(MatchDaySquad matchDaySquad) {
+    Set<Player> ineligiblePlayers = new HashSet<Player>(
+            Arrays.asList(matchDaySquad.getStartingLineup()));
+    Set<Player> ineligiblePlayers2 = new HashSet<Player>(
+            Arrays.asList(matchDaySquad.getSubstitutions()));
+    Player[] reserves = new Player[footballTeam.getSquad().size()-MatchDaySquad.MATCH_DAY_SQUAD-MatchDaySquad.MATCH_DAY_SUBSTITUTIONS];
+    int remainingPlayers = 0;
+
+    for (Player player : footballTeamSquad) {
+      if (!ineligiblePlayers.contains(player) && !ineligiblePlayers2.contains(player)) {
+        reserves[remainingPlayers] = player;
+        remainingPlayers++;
+      }
+    }
+    return reserves;
   }
 
   private static Player getBestFreekickTaker(List<Player> squad) {

@@ -1,6 +1,8 @@
 package com.elliot.footballmanager.entity.dao;
 
 import com.elliot.footballmanager.entity.Country;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,7 +17,7 @@ public interface CountryDao {
    * @return A Map of all the Countires stored in the database. Key : CountryId Value : Country
    * object
    */
-  public Map<Integer, Country> getAllCountries();
+  public List<Country> getAllCountries();
 
   /**
    * @param countryId The unique ID of the Country you want to retrieve.

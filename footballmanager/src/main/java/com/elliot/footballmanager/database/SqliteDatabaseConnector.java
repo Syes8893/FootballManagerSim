@@ -55,28 +55,24 @@ public class SqliteDatabaseConnector {
    * Runs a series of SQL statements that remove artifacts so that a new saved game can be created.
    * Note: Deletes vital information about a save game, not reversible.
    */
-  public static void deleteSavedGameArtifacts() {
-    List<String> deleteStatements = new ArrayList<String>();
-    deleteStatements.add("DELETE FROM GAME_MANAGER");
-    deleteStatements.add("DELETE FROM MANAGER");
+  public static void deleteSavedGameArtifacts(boolean newSeason) {
+    List<String> deleteStatements = new ArrayList<>();
+    if(!newSeason){
+      deleteStatements.add("DELETE FROM GAME_MANAGER");
+      deleteStatements.add("DELETE FROM MANAGER");
+    }
     deleteStatements.add("DELETE FROM FIXTURE");
     deleteStatements.add("DELETE FROM FOOTBALL_TEAM_MATCH_SETUP");
     deleteStatements.add("DELETE FROM STANDING");
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         Statement stmt = conn.createStatement()) {
-
-      for (String statement : deleteStatements) {
-        int result = stmt.executeUpdate(statement);
-        if (result > 0) {
-          System.out.println(statement + " Run successfully.");
-        }
-      }
+      for (String statement : deleteStatements)
+        stmt.executeUpdate(statement);
 
     } catch (SQLException e) {
       e.printStackTrace();
     }
-
   }
 
   /**
@@ -85,11 +81,11 @@ public class SqliteDatabaseConnector {
   private static void getDatabaseFileLocation() {
     if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
       CONNECTION_URL =
-          "jdbc:sqlite:" + new File(System.getProperty("user.dir")).getParentFile().toString()
+          "jdbc:sqlite:" + new File(System.getProperty("user.dir"))
               + "\\FootballManagerDatabase";
     } else {
       CONNECTION_URL =
-          "jdbc:sqlite:" + new File(System.getProperty("user.dir")).getParentFile().toString()
+          "jdbc:sqlite:" + new File(System.getProperty("user.dir"))
               + "/FootballManagerDatabase";
     }
   }

@@ -7,29 +7,34 @@ package com.elliot.footballmanager.entity;
  */
 public class Standing {
 
-  private Integer standingId;
-  private Integer leagueId;
-  private Integer footballTeamId;
-  private Integer wins;
-  private Integer losses;
-  private Integer draws;
-  private Integer goalsFor;
-  private Integer goalsAgainst;
-  private Integer goalDifference;
-  private Integer points;
-  private Integer tablePosition;
-  private Integer gamesPlayed;
+  private int standingId;
+  private int leagueId;
+  private int footballTeamId;
+  private String footballTeamName;
+  private int wins;
+  private int losses;
+  private int draws;
+  private int goalsFor;
+  private int goalsAgainst;
+  private int goalDifference;
+  private int points;
+  private int tablePosition;
+  private int gamesPlayed;
 
-  public Standing() {
-
+  public Standing(FootballTeam footballTeam) {
+    this.footballTeamName = footballTeam.getTeamName();
+    this.footballTeamId = footballTeam.getFootballTeamId();
+    this.leagueId = footballTeam.getLeagueId();
+    this.standingId = 0;
   }
 
-  public Standing(Integer standingId, Integer leagueId, Integer footballTeamId, Integer wins,
-      Integer losses, Integer draws, Integer goalsFor, Integer goalsAgainst,
-      Integer goalDifference, Integer points, Integer tablePosition, Integer gamesPlayed) {
+  public Standing(int standingId, int leagueId, int footballTeamId, String footballTeamName, int wins,
+      int losses, int draws, int goalsFor, int goalsAgainst,
+      int goalDifference, int points, int tablePosition, int gamesPlayed) {
     this.standingId = standingId;
     this.leagueId = leagueId;
     this.footballTeamId = footballTeamId;
+    this.footballTeamName = footballTeamName;
     this.wins = wins;
     this.losses = losses;
     this.draws = draws;
@@ -41,99 +46,107 @@ public class Standing {
     this.gamesPlayed = gamesPlayed;
   }
 
-  public Integer getStandingId() {
+  public int getStandingId() {
     return standingId;
   }
 
-  public void setStandingId(Integer standingId) {
+  public void setStandingId(int standingId) {
     this.standingId = standingId;
   }
 
-  public Integer getLeagueId() {
+  public int getLeagueId() {
     return leagueId;
   }
 
-  public void setLeagueId(Integer leagueId) {
+  public void setLeagueId(int leagueId) {
     this.leagueId = leagueId;
   }
 
-  public Integer getFootballTeamId() {
+  public int getFootballTeamId() {
     return footballTeamId;
   }
 
-  public void setFootballTeamId(Integer footballTeamId) {
+  public void setFootballTeamId(int footballTeamId) {
     this.footballTeamId = footballTeamId;
   }
 
-  public Integer getWins() {
+  public String getFootballTeamName() {
+    return footballTeamName;
+  }
+
+  public void setFootballTeamName(String footballTeamName) {
+    this.footballTeamName = footballTeamName;
+  }
+
+  public int getWins() {
     return wins;
   }
 
-  public void setWins(Integer wins) {
+  public void setWins(int wins) {
     this.wins = wins;
   }
 
-  public Integer getLosses() {
+  public int getLosses() {
     return losses;
   }
 
-  public void setLosses(Integer losses) {
+  public void setLosses(int losses) {
     this.losses = losses;
   }
 
-  public Integer getDraws() {
+  public int getDraws() {
     return draws;
   }
 
-  public void setDraws(Integer draws) {
+  public void setDraws(int draws) {
     this.draws = draws;
   }
 
-  public Integer getGoalsFor() {
+  public int getGoalsFor() {
     return goalsFor;
   }
 
-  public void setGoalsFor(Integer goalsFor) {
+  public void setGoalsFor(int goalsFor) {
     this.goalsFor = goalsFor;
   }
 
-  public Integer getGoalsAgainst() {
+  public int getGoalsAgainst() {
     return goalsAgainst;
   }
 
-  public void setGoalsAgainst(Integer goalsAgainst) {
+  public void setGoalsAgainst(int goalsAgainst) {
     this.goalsAgainst = goalsAgainst;
   }
 
-  public Integer getGoalDifference() {
+  public int getGoalDifference() {
     return goalDifference;
   }
 
-  public void setGoalDifference(Integer goalDifference) {
+  public void setGoalDifference(int goalDifference) {
     this.goalDifference = goalDifference;
   }
 
-  public Integer getPoints() {
+  public int getPoints() {
     return points;
   }
 
-  public void setPoints(Integer points) {
+  public void setPoints(int points) {
     this.points = points;
   }
 
-  public Integer getTablePosition() {
+  public int getTablePosition() {
     return tablePosition;
   }
 
-  public void setTablePosition(Integer tablePosition) {
+  public void setTablePosition(int tablePosition) {
     this.tablePosition = tablePosition;
   }
 
-  public Integer getGamesPlayed() {
+  public int getGamesPlayed() {
     return gamesPlayed;
   }
 
-  public void setGamesPlayed(Integer gamesPlayed) {
+  public void setGamesPlayed(int gamesPlayed) {
     this.gamesPlayed = gamesPlayed;
   }
 }

@@ -2,6 +2,9 @@ package com.elliot.footballmanager.entity.dao;
 
 import com.elliot.footballmanager.match.MatchResult;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Outlays the interactivity with the database
  *
@@ -9,6 +12,6 @@ import com.elliot.footballmanager.match.MatchResult;
  */
 public interface MatchEngineDao {
 
-  public void persistResultToDatabase(MatchResult matchResult);
+  public void persistResultsToDatabase(Collection<MatchResult> matchResults);
 
 }

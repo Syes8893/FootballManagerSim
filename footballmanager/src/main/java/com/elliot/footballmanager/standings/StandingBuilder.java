@@ -1,10 +1,12 @@
 package com.elliot.footballmanager.standings;
 
+import com.elliot.footballmanager.entity.FootballTeam;
 import com.elliot.footballmanager.entity.dao.StandingDao;
 import com.elliot.footballmanager.entity.dao.impl.StandingDaoImpl;
 import com.elliot.footballmanager.entity.Standing;
 import com.elliot.footballmanager.match.MatchResult;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -14,27 +16,27 @@ import java.util.List;
  */
 public class StandingBuilder {
 
-  private final Integer POINTS_FOR_WIN = 3;
-  private final Integer POINTS_FOR_DRAW = 1;
+  private final int POINTS_FOR_WIN = 3;
+  private final int POINTS_FOR_DRAW = 1;
 
-  private MatchResult matchResult;
+  private final MatchResult matchResult;
 
   private Standing homeTeamStanding;
   private Standing awayTeamStanding;
 
-  private List<Standing> outdatedTable;
+  private final HashMap<Integer, Standing> standingList;
 
-  private StandingBuilder() {
-
-  }
-
-  public StandingBuilder(MatchResult matchResult) {
+  public StandingBuilder(MatchResult matchResult, HashMap<Integer, Standing> standingList) {
     this.matchResult = matchResult;
+    this.standingList = standingList;
 
-    homeTeamStanding = new Standing();
-    awayTeamStanding = new Standing();
+//    FootballTeam homeTeam = matchResult.getFixture().getHomeTeam();
+//    FootballTeam awayTeam = matchResult.getFixture().getAwayTeam();
 
-    updateFootballTeamIds();
+//    homeTeamStanding = new Standing(homeTeam);
+//    awayTeamStanding = new Standing(awayTeam);
+
+//    updateFootballTeamIds();
   }
 
   private void updateFootballTeamIds() {
@@ -45,7 +47,8 @@ public class StandingBuilder {
   }
 
   public void buildStandingsFromMatchResult() {
-    getStandingObjectsFromDatabase();
+//    getStandingObjectsFromDatabase();
+    getStandingsFromMap();
 
     addLeagueId();
     addFootballTeamIds();
@@ -54,21 +57,31 @@ public class StandingBuilder {
     addWinLossDraw();
     addPoints();
     incrementGamesPlayed();
-    calculateTablePositions();
+
+    standingList.put(matchResult.getFixture().getHomeTeam().getFootballTeamId(), homeTeamStanding);
+    standingList.put(matchResult.getFixture().getAwayTeam().getFootballTeamId(), awayTeamStanding);
+//    calculateTablePositions();
   }
 
-  private void getStandingObjectsFromDatabase() {
-    StandingDao standingDao = new StandingDaoImpl();
-
-    homeTeamStanding = standingDao
-        .getStandingByFootballTeamId(homeTeamStanding.getFootballTeamId());
-    awayTeamStanding = standingDao
-        .getStandingByFootballTeamId(awayTeamStanding.getFootballTeamId());
+  private void getStandingsFromMap(){
+    if(standingList.containsKey(matchResult.getFixture().getHomeTeam().getFootballTeamId()))
+      homeTeamStanding = standingList.get(matchResult.getFixture().getHomeTeam().getFootballTeamId());
+    if(standingList.containsKey(matchResult.getFixture().getAwayTeam().getFootballTeamId()))
+      awayTeamStanding = standingList.get(matchResult.getFixture().getAwayTeam().getFootballTeamId());
   }
 
-  public void updateStandingsInDatabase() {
-    persistUpdatedTable();
-  }
+//  private void getStandingObjectsFromDatabase() {
+////    StandingDao standingDao = new StandingDaoImpl();
+//
+//    this.homeTeamStanding = standingDao
+//        .getStandingByFootballTeamId(homeTeamStanding.getFootballTeamId());
+//    this.awayTeamStanding = standingDao
+//        .getStandingByFootballTeamId(awayTeamStanding.getFootballTeamId());
+//  }
+
+//  public void updateStandingsInDatabase() {
+//    persistUpdatedTable();
+//  }
 
   private void addLeagueId() {
     Integer leagueId = matchResult.getFixture().getLeagueId();
@@ -143,30 +156,30 @@ public class StandingBuilder {
     awayTeamStanding.setGamesPlayed(awayTeamStanding.getGamesPlayed() + 1);
   }
 
-  private void calculateTablePositions() {
-    Integer leagueId = homeTeamStanding.getLeagueId();
-    StandingDao standingDao = new StandingDaoImpl();
-    outdatedTable = standingDao.getOrderedTableByLeagueId(leagueId);
-
-    updateTableStanding(homeTeamStanding);
-    updateTableStanding(awayTeamStanding);
-
-    StandingComparator.orderTableByPoints(outdatedTable);
-  }
-
-  private void updateTableStanding(Standing standingToUpdate) {
-    for (int i = 0; i <= outdatedTable.size(); i++) {
-      if (outdatedTable.get(i).getFootballTeamId().equals(standingToUpdate.getFootballTeamId())) {
-        outdatedTable.set(i, standingToUpdate);
-        return;
-      }
-    }
-  }
-
-  private void persistUpdatedTable() {
-    StandingDao standingDao = new StandingDaoImpl();
-    for (Standing standing : outdatedTable) {
-      standingDao.updateStandingRecord(standing);
-    }
-  }
+//  private void calculateTablePositions() {
+//    Integer leagueId = homeTeamStanding.getLeagueId();
+////    StandingDao standingDao = new StandingDaoImpl();
+////    outdatedTable = standingDao.getOrderedTableByLeagueId(leagueId);
+//
+//    updateTableStanding(homeTeamStanding);
+//    updateTableStanding(awayTeamStanding);
+//
+//    StandingComparator.orderTableByPoints(outdatedTable);
+//  }
+//
+//  private void updateTableStanding(Standing standingToUpdate) {
+//    for (int i = 0; i <= outdatedTable.size(); i++) {
+//      if (outdatedTable.get(i).getFootballTeamId().equals(standingToUpdate.getFootballTeamId())) {
+//        outdatedTable.set(i, standingToUpdate);
+//        return;
+//      }
+//    }
+//  }
+//
+//  private void persistUpdatedTable() {
+////    StandingDao standingDao = new StandingDaoImpl();
+//    for (Standing standing : outdatedTable) {
+//      standingDao.updateStandingRecord(standing);
+//    }
+//  }
 }

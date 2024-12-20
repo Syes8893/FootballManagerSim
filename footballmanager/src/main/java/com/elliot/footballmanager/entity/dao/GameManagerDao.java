@@ -10,7 +10,7 @@ import com.elliot.footballmanager.entity.GameManager;
  */
 public interface GameManagerDao {
 
-  public void saveGame(GameManager gameManager);
+  public boolean saveGame(GameManager gameManager);
 
-  public void loadSavedGame(GameManager gameManager);
+  public boolean loadSavedGame(GameManager gameManager);
 }

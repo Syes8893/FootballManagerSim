@@ -7,8 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.elliot.footballmanager.database.SqliteDatabaseConnector;
 
@@ -19,17 +18,17 @@ import com.elliot.footballmanager.database.SqliteDatabaseConnector;
  */
 public class CountryDaoImpl implements CountryDao {
 
-  public Map<Integer, Country> getAllCountries() {
-    Map<Integer, Country> allCountries = new HashMap<Integer, Country>();
-    String query = "SELECT * FROM COUNTRY";
+  public List<Country> getAllCountries() {
+    List<Country> allCountries = new ArrayList<>();
+    String query = "SELECT nationality_id, nationality_name FROM COUNTRY";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(query)) {
 
       while (rs.next()) {
-        Country country = new Country(rs.getInt("COUNTRY_ID"), rs.getString("COUNTRY_NAME"));
-        allCountries.put(country.getCountryId(), country);
+        Country country = new Country(rs.getInt("nationality_id"), rs.getString("nationality_name"));
+        allCountries.add(country);
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -39,7 +38,7 @@ public class CountryDaoImpl implements CountryDao {
 
   @Override
   public Country getCountryById(Integer countryId) {
-    String query = "SELECT * FROM COUNTRY WHERE COUNTRY_ID = ?";
+    String query = "SELECT nationality_name FROM COUNTRY WHERE nationality_id = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -51,7 +50,7 @@ public class CountryDaoImpl implements CountryDao {
         return null;
       }
 
-      return new Country(rs.getInt("COUNTRY_ID"), rs.getString("COUNTRY_NAME"));
+      return new Country(countryId, rs.getString("nationality_name"));
     } catch (SQLException e) {
       e.printStackTrace();
     }

@@ -125,8 +125,7 @@ public enum Position {
     this.positionFullName = positionFullName;
   }
 
-  public static Position getPositionFromString(String positionAsString)
-      throws IllegalArgumentException {
+  public static Position getPositionFromString(String positionAsString) throws IllegalArgumentException {
     switch (positionAsString) {
       case "GK":
         return Position.GK;

@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class FootballTeamMatchSetupDaoImpl implements FootballTeamMatchSetupDao {
 
@@ -57,6 +58,32 @@ public class FootballTeamMatchSetupDaoImpl implements FootballTeamMatchSetupDao 
           footballTeamMatchSetupAsBytes);
       pstmt.setInt(1, footballTeam.getFootballTeamId());
       pstmt.setBinaryStream(2, byteArrayInputStream, footballTeamMatchSetupAsBytes.length);
+
+      pstmt.executeUpdate();
+
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void updateFootballTeamMatchSetup(FootballTeam footballTeam) {
+    String query = "UPDATE FOOTBALL_TEAM_MATCH_SETUP SET FOOTBALL_TEAM_MATCH_SETUP_CLASS = ? WHERE FOOTBALL_TEAM_ID = ?";
+
+    try (Connection conn = SqliteDatabaseConnector.connect();
+         PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+      objectOutputStream.writeObject(footballTeam.getMatchSetup());
+
+      byte[] footballTeamMatchSetupAsBytes = byteArrayOutputStream.toByteArray();
+      ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+              footballTeamMatchSetupAsBytes);
+      pstmt.setBinaryStream(1, byteArrayInputStream, footballTeamMatchSetupAsBytes.length);
+      pstmt.setInt(2, footballTeam.getFootballTeamId());
 
       pstmt.executeUpdate();
 

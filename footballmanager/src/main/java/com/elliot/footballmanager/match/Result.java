@@ -33,7 +33,12 @@ public enum Result {
     } else if (awayTeamGoals > homeTeamGoals) {
       return A;
     } else {
-      return D;
+      if(!matchResult.getFixture().isCup())
+        return D;
+      if(matchResult.getHomeTeamMatchStats().getPenaltyShootout() >= matchResult.getAwayTeamMatchStats().getPenaltyShootout())
+        return H;
+      else
+        return A;
     }
   }
 }

@@ -12,5 +12,7 @@ public interface ManagerDao {
    */
   public void insertIntoManagerTable(Manager manager);
 
+  public void updateManagerInTable(Manager manager);
+
   public Manager getManagerById(Integer managerId);
 }

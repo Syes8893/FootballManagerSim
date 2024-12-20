@@ -6,11 +6,11 @@ import com.elliot.footballmanager.entity.FootballTeam;
 
 import com.elliot.footballmanager.entity.Standing;
 import com.elliot.footballmanager.standings.StandingComparator;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,44 +19,34 @@ import java.util.List;
 public class StandingDaoImpl implements StandingDao {
 
   @Override
-  public void createNewStandingForFootballTeam(FootballTeam footballTeam) {
-    String query = "INSERT INTO STANDING (LEAGUE_ID, FOOTBALL_TEAM_ID) VALUES (? ,?)";
-
-    try (Connection conn = SqliteDatabaseConnector.connect();
-        PreparedStatement pstmt = conn.prepareStatement(query)) {
-      pstmt.setInt(1, footballTeam.getLeagueId());
-      pstmt.setInt(2, footballTeam.getFootballTeamId());
-
-      pstmt.executeUpdate();
+  public void createNewStandingForFootballTeams(List<FootballTeam> footballTeams) {
+    try (Connection conn = SqliteDatabaseConnector.connect()) {
+      conn.createStatement().execute("DELETE FROM STANDING");
+      Statement statement = conn.createStatement();
+      for(FootballTeam footballTeam : footballTeams){
+        statement.addBatch("INSERT INTO STANDING (LEAGUE_ID, FOOTBALL_TEAM_ID, FOOTBALL_TEAM_NAME)"
+              + " VALUES (" + footballTeam.getLeagueId() + ", " + footballTeam.getFootballTeamId() + ", '" + footballTeam.getTeamName().replace("'", "''") + "')");
+      }
+      statement.executeBatch();
     } catch (SQLException e) {
       e.printStackTrace();
     }
   }
 
   @Override
-  public void updateStandingRecord(Standing standing) {
-    String query =
-        "UPDATE STANDING SET LEAGUE_ID = ?, FOOTBALL_TEAM_ID = ?, WINS = ?, LOSSES = ?," +
-            " DRAWS = ?, GOALS_FOR = ?, GOALS_AGAINST = ?, GOAL_DIFFERENCE = ?," +
-            " POINTS = ?, TABLE_POSITION = ?, GAMES_PLAYED = ? WHERE FOOTBALL_TEAM_ID = ?";
+  public void updateStandingRecords(Collection<Standing> standings) {
+    try (Connection conn = SqliteDatabaseConnector.connect()) {
+      Statement statement = conn.createStatement();
+      for(Standing standing : standings){
+        statement.addBatch("UPDATE STANDING SET LEAGUE_ID = " + standing.getLeagueId()
+                + ", FOOTBALL_TEAM_ID = " + standing.getFootballTeamId() + ", FOOTBALL_TEAM_NAME = '" + standing.getFootballTeamName()
+                + "', WINS = " + standing.getWins() + ", LOSSES = " + standing.getLosses() + "," +
+                " DRAWS = " + standing.getDraws() + ", GOALS_FOR = " + standing.getGoalsFor()
+                + ", GOALS_AGAINST = " + standing.getGoalsAgainst() + ", GOAL_DIFFERENCE = " + standing.getGoalDifference() + "," +
+                " POINTS = " + standing.getPoints() + ", GAMES_PLAYED = " + standing.getGamesPlayed() + " WHERE FOOTBALL_TEAM_ID = " + standing.getFootballTeamId());
 
-    try (Connection conn = SqliteDatabaseConnector.connect();
-        PreparedStatement pstmt = conn.prepareStatement(query)) {
-      pstmt.setInt(1, standing.getLeagueId());
-      pstmt.setInt(2, standing.getFootballTeamId());
-      pstmt.setInt(3, standing.getWins());
-      pstmt.setInt(4, standing.getLosses());
-      pstmt.setInt(5, standing.getDraws());
-      pstmt.setInt(6, standing.getGoalsFor());
-      pstmt.setInt(7, standing.getGoalsAgainst());
-      pstmt.setInt(8, standing.getGoalDifference());
-      pstmt.setInt(9, standing.getPoints());
-      pstmt.setInt(10, standing.getTablePosition());
-      pstmt.setInt(11, standing.getGamesPlayed());
-
-      pstmt.setInt(12, standing.getFootballTeamId());
-
-      pstmt.executeUpdate();
+      }
+      statement.executeBatch();
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -75,9 +65,7 @@ public class StandingDaoImpl implements StandingDao {
         return null;
       }
 
-      while (rs.next()) {
-        return buildStandingObject(rs);
-      }
+      return buildStandingObject(rs);
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -111,7 +99,7 @@ public class StandingDaoImpl implements StandingDao {
 
   private Standing buildStandingObject(ResultSet rs) throws SQLException {
     return new Standing(rs.getInt("STANDING_ID"), rs.getInt("LEAGUE_ID"),
-        rs.getInt("FOOTBALL_TEAM_ID"), rs.getInt("WINS"),
+        rs.getInt("FOOTBALL_TEAM_ID"), rs.getString("FOOTBALL_TEAM_NAME"), rs.getInt("WINS"),
         rs.getInt("LOSSES"), rs.getInt("DRAWS"), rs.getInt("GOALS_FOR"), rs.getInt("GOALS_AGAINST"),
         rs.getInt("GOAL_DIFFERENCE"), rs.getInt("POINTS"), rs.getInt("TABLE_POSITION"),
         rs.getInt("GAMES_PLAYED"));

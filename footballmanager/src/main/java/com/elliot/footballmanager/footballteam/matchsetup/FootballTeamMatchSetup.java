@@ -1,5 +1,6 @@
 package com.elliot.footballmanager.footballteam.matchsetup;
 
+import com.elliot.footballmanager.entity.FootballTeam;
 import com.elliot.footballmanager.entity.Player;
 
 import java.io.Serializable;
@@ -12,7 +13,7 @@ import java.io.Serializable;
  */
 public class FootballTeamMatchSetup implements Serializable {
 
-  public static final Integer MAXIMUM_STORED_FORMATIONS = 3;
+  public static final Integer MAXIMUM_STORED_FORMATIONS = 12;
 
   private MatchDaySquad selectedFormation;
   private MatchDaySquad[] availableFormations = new MatchDaySquad[MAXIMUM_STORED_FORMATIONS];
@@ -23,6 +24,14 @@ public class FootballTeamMatchSetup implements Serializable {
 
   public FootballTeamMatchSetup() {
 
+  }
+
+  public FootballTeamMatchSetup(MatchDaySquad selectedFormation, MatchDaySquad[] availableFormations, Player freekickTaker, Player penaltyTaker, Player cornerTaker) {
+    this.selectedFormation = selectedFormation;
+    this.availableFormations = availableFormations;
+    this.freekickTaker = freekickTaker;
+    this.penaltyTaker = penaltyTaker;
+    this.cornerTaker = cornerTaker;
   }
 
   public MatchDaySquad getSelectedFormation() {

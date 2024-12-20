@@ -26,11 +26,11 @@ public class PlayerDaoImpl implements PlayerDao {
 
   @Override
   public List<Player> getAllPlayersForFootballTeam(FootballTeam footballTeam) {
-    String query = "SELECT * FROM PLAYER WHERE CLUB LIKE ?";
+    String query = "SELECT * FROM PLAYER WHERE club_team_id = ?";
 
     try (Connection conn = SqliteDatabaseConnector.connect();
         PreparedStatement pstmt = conn.prepareStatement(query)) {
-      pstmt.setString(1, footballTeam.getTeamName());
+      pstmt.setInt(1, footballTeam.getFootballTeamId());
 
       ResultSet rs = pstmt.executeQuery();
 
@@ -52,11 +52,12 @@ public class PlayerDaoImpl implements PlayerDao {
 
   private Player buildBasePlayerObject(ResultSet rs, FootballTeam footballTeam)
       throws SQLException {
-    Set<Position> positions = getPositionsFromString(rs.getString("PREFERRED_POSITIONS"));
+    Set<Position> positions = getPositionsFromString(rs.getString("player_positions"));
 
-    Player player = new Player(rs.getInt("PLAYER_ID"), rs.getString("NAME"), rs.getInt("AGE"),
-        rs.getString("NATIONALITY"),
-        rs.getInt("OVERALL"), footballTeam, rs.getDouble("VALUE"), rs.getDouble("WAGE"), positions);
+    Player player = new Player(rs.getInt("player_id"), rs.getString("short_name"),
+            rs.getString("long_name"), rs.getInt("age"),
+        rs.getString("nationality_name"),
+        rs.getInt("overall"), footballTeam, rs.getDouble("value_eur"), rs.getDouble("wage_eur"), positions);
 
     player.setGoalkeeperAttributes(buildGoalkeeperAttributes(rs));
     player.setMentalAttributes(buildMentalAttributes(rs));
@@ -67,7 +68,7 @@ public class PlayerDaoImpl implements PlayerDao {
   }
 
   private Set<Position> getPositionsFromString(String positionsAsString) {
-    String[] parts = positionsAsString.split(" ");
+    String[] parts = positionsAsString.split(", ");
 
     if (parts.length == 0 || parts == null) {
       return new HashSet<Position>();
@@ -86,31 +87,31 @@ public class PlayerDaoImpl implements PlayerDao {
   }
 
   private GoalkeeperAttributes buildGoalkeeperAttributes(ResultSet rs) throws SQLException {
-    return new GoalkeeperAttributes(rs.getInt("GK_DIVING"), rs.getInt("GK_HANDLING"),
-        rs.getInt("GK_KICKING"),
-        rs.getInt("GK_POSITIONING"), rs.getInt("GK_REFLEXES"));
+    return new GoalkeeperAttributes(rs.getInt("goalkeeping_diving"), rs.getInt("goalkeeping_handling"),
+        rs.getInt("goalkeeping_kicking"),
+        rs.getInt("goalkeeping_positioning"), rs.getInt("goalkeeping_reflexes"));
   }
 
   private MentalAttributes buildMentalAttributes(ResultSet rs) throws SQLException {
-    return new MentalAttributes(rs.getInt("POSITIONING"), rs.getInt("VISION"),
-        rs.getInt("COMPOSURE"),
-        rs.getInt("INTERCEPTIONS"), rs.getInt("AGGRESSION"));
+    return new MentalAttributes(rs.getInt("mentality_positioning"), rs.getInt("mentality_vision"),
+        rs.getInt("mentality_composure"),
+        rs.getInt("mentality_interceptions"), rs.getInt("mentality_aggression"));
   }
 
   private PhysicalAttributes buildPhysicalAttributes(ResultSet rs) throws SQLException {
-    return new PhysicalAttributes(rs.getInt("ACCELERATION"), rs.getInt("SPRINT_SPEED"),
-        rs.getInt("AGILITY"),
-        rs.getInt("BALANCE"), rs.getInt("REACTIONS"), rs.getInt("JUMPING"),
-        rs.getInt("STAMINA"), rs.getInt("STRENGTH"));
+    return new PhysicalAttributes(rs.getInt("movement_acceleration"), rs.getInt("movement_sprint_speed"),
+        rs.getInt("movement_agility"),
+        rs.getInt("movement_balance"), rs.getInt("movement_reactions"), rs.getInt("power_jumping"),
+        rs.getInt("power_stamina"), rs.getInt("power_strength"));
   }
 
   private TechnicalAttributes buildTechnicalAttributes(ResultSet rs) throws SQLException {
-    return new TechnicalAttributes(rs.getInt("FINISHING"), rs.getInt("LONG_SHOTS"),
-        rs.getInt("PENALTIES"),
-        rs.getInt("SHOT_POWER"), rs.getInt("VOLLEYS"), rs.getInt("CROSSING"),
-        rs.getInt("CURVE"), rs.getInt("FREE_KICK_ACCURACY"), rs.getInt("LONG_PASSING"),
-        rs.getInt("SHORT_PASSING"), rs.getInt("BALL_CONTROL"), rs.getInt("DRIBBLING"),
-        rs.getInt("HEADING_ACCURACY"), rs.getInt("MARKING"), rs.getInt("SLIDING_TACKLE"),
-        rs.getInt("STANDING_TACKLE"));
+    return new TechnicalAttributes(rs.getInt("attacking_finishing"), rs.getInt("power_long_shots"),
+        rs.getInt("mentality_penalties"),
+        rs.getInt("power_shot_power"), rs.getInt("attacking_volleys"), rs.getInt("attacking_crossing"),
+        rs.getInt("skill_curve"), rs.getInt("skill_fk_accuracy"), rs.getInt("skill_long_passing"),
+        rs.getInt("attacking_short_passing"), rs.getInt("skill_ball_control"), rs.getInt("skill_dribbling"),
+        rs.getInt("attacking_heading_accuracy"), rs.getInt("defending_marking_awareness"), rs.getInt("defending_sliding_tackle"),
+        rs.getInt("defending_standing_tackle"));
   }
 }

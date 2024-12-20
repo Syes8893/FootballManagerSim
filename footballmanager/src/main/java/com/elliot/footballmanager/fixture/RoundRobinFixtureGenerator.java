@@ -1,23 +1,20 @@
 package com.elliot.footballmanager.fixture;
 
+import com.elliot.footballmanager.entity.Fixture;
+import com.elliot.footballmanager.entity.GameManager;
 import com.elliot.footballmanager.entity.dao.FixtureDao;
 import com.elliot.footballmanager.entity.dao.impl.FixtureDaoImpl;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+
+import java.util.*;
 
 import com.elliot.footballmanager.DateUtils;
 import com.elliot.footballmanager.entity.FootballTeam;
 import com.elliot.footballmanager.entity.League;
 
 /**
- * Given a <link>League</link> containing all the <link>FootballTeam</link>'s that are part of that
+ * Given a {@link League} containing all the {@link FootballTeam}'s that are part of that
  * league this will return a collection of
- * <link>Fixture</link>'s generated using a round robin scheduling system.
+ * {@link Fixture}'s generated using a round robin scheduling system.
  *
  * @author Elliot
  */
@@ -25,29 +22,30 @@ public class RoundRobinFixtureGenerator extends AbstractFixtureFactory implement
 
   private Integer TOTAL_GAMES_IN_SEASON;
   private Integer HALF_GAMES_IN_SEASON;
-  private Date fixtureDate = new GregorianCalendar(2018, Calendar.AUGUST, 11).getTime();
+  private Date fixtureDate;
 
   public RoundRobinFixtureGenerator() {
 
   }
 
-  private void generateFixturesFromArray(List<String> allFixtures, FootballTeam[] footballTeams) {
+  private void generateFixturesFromArray(FootballTeam[] footballTeams) {
     // Games stored in array at index 8 or higher will be generated as Sunday fixtures
-    int gamesForSunday = 8;
+//    int gamesForSunday = 6;
     int total = footballTeams.length - 1;
     for (int i = 0; i < footballTeams.length / 2; i++) {
-      if (i < gamesForSunday) {
-        allFixtures.add(createFixtureInsertStatement(footballTeams[i], footballTeams[total],
-            this.getFixtureDate()));
-      } else {
-        allFixtures.add(createFixtureInsertStatement(footballTeams[i], footballTeams[total],
-            moveFixtureToNextDay(this.getFixtureDate())));
-      }
+      //TODO - remove sunday fixtures for now to test for bugs (extra fixtures played for some teams)
+//      if (i < gamesForSunday) {
+        fixtures.add(new Fixture(footballTeams[i], footballTeams[total], this.getFixtureDate(), footballTeams[i].getLeagueId(), -1));
+//      } else {
+//        allFixtures.add(createFixtureInsertStatement(footballTeams[i], footballTeams[total],
+//            moveFixtureToNextDay(this.getFixtureDate())));
+//      }
       total--;
     }
 
-    // Add a Week onto the Fixture date
-    fixtureDate = DateUtils.addDays(fixtureDate, 7);
+    //Divide matchdays over 300 days after starting date
+    int timeBetweenGames = 300/((footballTeams.length-1) * 2);
+    fixtureDate = DateUtils.addDays(fixtureDate, timeBetweenGames);
   }
 
   private Date moveFixtureToNextDay(Date fixtureDate) {
@@ -55,8 +53,7 @@ public class RoundRobinFixtureGenerator extends AbstractFixtureFactory implement
     return fixtureDate;
   }
 
-  private FootballTeam[] shiftFootballTeamArray(FootballTeam[] footballTeams,
-      FootballTeam firstTeam) {
+  private FootballTeam[] shiftFootballTeamArray(FootballTeam[] footballTeams, FootballTeam firstTeam) {
     FootballTeam[] shiftedFootballTeams = new FootballTeam[footballTeams.length];
     for (int i = 0; i < footballTeams.length - 1; i++) {
       shiftedFootballTeams[i + 1] = footballTeams[i];
@@ -73,21 +70,21 @@ public class RoundRobinFixtureGenerator extends AbstractFixtureFactory implement
   }
 
   private void reverseArrayOrder(FootballTeam[] footballTeams) {
-    for (int i = 0; i < footballTeams.length / 2; i++) {
-      FootballTeam temp = footballTeams[i];
-      footballTeams[i] = footballTeams[footballTeams.length - i - 1];
-      footballTeams[footballTeams.length - i - 1] = temp;
-    }
+    Collections.reverse(Arrays.asList(footballTeams));
   }
 
-  private List<String> buildFixturesList(List<FootballTeam> footballTeams) {
-    if (footballTeams.size() == 0 || footballTeams == null) {
-      return new ArrayList<String>();
-    }
+  private void buildFixturesList(ArrayList<FootballTeam> footballTeamsOriginal, Date date) {
+    if (footballTeamsOriginal == null || footballTeamsOriginal.isEmpty())
+      return;
+
+    List<FootballTeam> footballTeams = (ArrayList<FootballTeam>) footballTeamsOriginal.clone();
+    Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
+    calendar.setTime(date);
+    calendar.add(Calendar.DATE, 10);
+    Date startDate = calendar.getTime();
+    fixtureDate = startDate;
 
     Collections.shuffle(footballTeams);
-
-    List<String> selectedLeagueFixtures = new ArrayList<String>();
 
     FootballTeam[] footballTeamsArray = new FootballTeam[footballTeams.size()];
     footballTeams.toArray(footballTeamsArray);
@@ -96,8 +93,8 @@ public class RoundRobinFixtureGenerator extends AbstractFixtureFactory implement
     HALF_GAMES_IN_SEASON = TOTAL_GAMES_IN_SEASON / 2;
 
     // Home Fixtures
-    while (selectedLeagueFixtures.size() != HALF_GAMES_IN_SEASON) {
-      generateFixturesFromArray(selectedLeagueFixtures, footballTeamsArray);
+    while (fixtures.size() < HALF_GAMES_IN_SEASON) {
+      generateFixturesFromArray(footballTeamsArray);
       // Shift all teams one place to the right (Bar the first one | Round Robin method)
       footballTeamsArray = shiftFootballTeamArray(
           Arrays.copyOfRange(footballTeamsArray, 1, footballTeamsArray.length),
@@ -108,34 +105,34 @@ public class RoundRobinFixtureGenerator extends AbstractFixtureFactory implement
     reverseArrayOrder(footballTeamsArray);
 
     // Away Fixtures
-    while (selectedLeagueFixtures.size() != TOTAL_GAMES_IN_SEASON) {
-      generateFixturesFromArray(selectedLeagueFixtures, footballTeamsArray);
+    while (fixtures.size() < TOTAL_GAMES_IN_SEASON) {
+      generateFixturesFromArray(footballTeamsArray);
       // Shift all teams one place to the right (Bar the first one | Round Robin method)
       footballTeamsArray = shiftFootballTeamArray(
           Arrays.copyOfRange(footballTeamsArray, 1, footballTeamsArray.length),
           footballTeamsArray[0]);
     }
-    ;
-
-    return selectedLeagueFixtures;
   }
 
   @Override
-  public List<String> generateFixtureInsertStatements() {
-    prepareLeaguesForFixtureGeneration();
-
-    for (League league : this.getLeaguesForGeneration()) {
-      this.getAllFixtures().addAll(buildFixturesList(league.getFootballTeams()));
-    }
-
-    return this.getAllFixtures();
+  public void generateFixtures(Date date, ArrayList<FootballTeam> footballTeams){
+    buildFixturesList(footballTeams, date);
   }
 
-  @Override
-  public void insertFixturesIntoDatabase(List<String> fixtures) {
-    FixtureDao fixtureDao = new FixtureDaoImpl();
-    fixtureDao.insertFixturesIntoDatabase(fixtures);
-  }
+//  @Override
+//  public List<String> generateFixtureInsertStatements(Date date, League league) {
+//
+//    //Build fixtures for only selected league
+//    this.getAllFixtures().addAll(buildFixturesList(league.getFootballTeams(), date));
+//
+//    return this.getAllFixtures();
+//  }
+//
+//  @Override
+//  public void insertFixturesIntoDatabase(List<String> fixtures) {
+//    FixtureDao fixtureDao = new FixtureDaoImpl();
+//    fixtureDao.insertFixturesIntoDatabase(fixtures);
+//  }
 
   public Date getFixtureDate() {
     return fixtureDate;

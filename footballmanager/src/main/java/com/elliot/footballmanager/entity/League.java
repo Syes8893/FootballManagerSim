@@ -1,5 +1,6 @@
 package com.elliot.footballmanager.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.elliot.footballmanager.entity.Fixture;
@@ -13,8 +14,10 @@ public class League {
   private Integer leagueId;
   private String leagueName;
   private Integer countryId;
-  private List<FootballTeam> footballTeams;
+  private ArrayList<FootballTeam> footballTeams;
   private List<Fixture> upcomingFixtures;
+
+//  private LeagueTable leagueTable;
 
   public League() {
 
@@ -26,7 +29,7 @@ public class League {
     this.countryId = countryId;
   }
 
-  public Integer getLeagueId() {
+  public int getLeagueId() {
     return leagueId;
   }
 
@@ -50,11 +53,11 @@ public class League {
     this.countryId = countryId;
   }
 
-  public List<FootballTeam> getFootballTeams() {
+  public ArrayList<FootballTeam> getFootballTeams() {
     return footballTeams;
   }
 
-  public void setFootballTeams(List<FootballTeam> footballTeams) {
+  public void setFootballTeams(ArrayList<FootballTeam> footballTeams) {
     this.footballTeams = footballTeams;
   }
 
