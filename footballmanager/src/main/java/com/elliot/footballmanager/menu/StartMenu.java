@@ -119,7 +119,7 @@ public class StartMenu implements GameMenu {
 
       if(choice == 0)
         endLoop = true;
-      else if (gameManager.getAllCountries().get(choice-1) != null) {
+      else if (choice-1 < gameManager.getAllCountries().size() && gameManager.getAllCountries().get(choice-1) != null) {
         Country country = gameManager.getAllCountries().get(choice-1);
         gameManager.setCurrentCountry(country);
         System.out.println("You have selected: " + ColorUtils.GREEN + country.getCountryName() + ColorUtils.RESET + "\n");
@@ -152,7 +152,7 @@ public class StartMenu implements GameMenu {
       if (choice == 0) {
         chooseCountry();
         endLoop = true;
-      } else if (gameManager.getAllLeagues().get(choice-1) != null) {
+      } else if (choice-1 < gameManager.getAllLeagues().size() && gameManager.getAllLeagues().get(choice-1) != null) {
         League league = gameManager.getAllLeagues().get(choice-1);
         gameManager.setCurrentLeague(league);
         System.out.println("You have selected: " + ColorUtils.GREEN + league.getLeagueName() + ColorUtils.RESET + "\n");
@@ -200,7 +200,7 @@ public class StartMenu implements GameMenu {
       if (choice == 0) {
         chooseLeague();
         endLoop = true;
-      } else if (gameManager.getCurrentLeague().getFootballTeams().get(choice-1) != null) {
+      } else if (choice-1 < gameManager.getCurrentLeague().getFootballTeams().size() && gameManager.getCurrentLeague().getFootballTeams().get(choice-1) != null) {
         FootballTeam footballTeam = gameManager.getCurrentLeague().getFootballTeams().get(choice-1);
         gameManager.setCurrentFootballTeam(footballTeam);
         System.out.println("You have selected: " + ColorUtils.GREEN + footballTeam.getTeamName() + ColorUtils.RESET + "\n");
